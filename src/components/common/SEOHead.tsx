@@ -20,7 +20,7 @@ export function generateSEOMetadata({
   title = 'gidi-e',
   description = 'Discover amazing products at great prices. Shop now for the latest deals and best quality items.',
   keywords = ['ecommerce', 'shopping', 'products', 'deals'],
-  image = '/images/og-default.jpg',
+  image = '/images/placeholdder.jpg',
   url = '',
   type = 'website',
   price,
