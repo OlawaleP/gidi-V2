@@ -3,13 +3,14 @@ import { cn } from '@/lib/utils';
 import { BaseComponent, Size } from '@/types/common';
 
 export interface TextareaProps extends BaseComponent {
+  id?: string;
   placeholder?: string;
   value?: string;
   defaultValue?: string;
   size?: Size;
   disabled?: boolean;
   required?: boolean;
-  error?: boolean;
+  error?: boolean | string;
   label?: string;
   helperText?: string;
   errorMessage?: string;
@@ -23,6 +24,7 @@ export interface TextareaProps extends BaseComponent {
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({
+    id,
     className,
     placeholder,
     value,
@@ -73,6 +75,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         
         <textarea
+          id={id}
           ref={ref}
           placeholder={placeholder}
           value={value}

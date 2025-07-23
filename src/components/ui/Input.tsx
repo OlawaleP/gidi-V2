@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { BaseComponent, Size } from '@/types/common';
 
 export interface InputProps extends BaseComponent {
+  id?: string;
   type?: 'text' | 'email' | 'password' | 'number' | 'search' | 'url';
   placeholder?: string;
   value?: string;
@@ -10,7 +11,7 @@ export interface InputProps extends BaseComponent {
   size?: Size;
   disabled?: boolean;
   required?: boolean;
-  error?: boolean;
+  error?: boolean | string;
   label?: string;
   helperText?: string;
   errorMessage?: string;
@@ -19,10 +20,14 @@ export interface InputProps extends BaseComponent {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  step?: string;
+  min?: string;
+  max?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({
+    id,
     className,
     type = 'text',
     placeholder,
@@ -40,6 +45,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     onChange,
     onFocus,
     onBlur,
+    step,
+    min,
+    max,
     ...props
   }, ref) => {
     const baseClasses = 'w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed';
@@ -82,6 +90,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           
           <input
+            id={id}
             ref={ref}
             type={type}
             placeholder={placeholder}
@@ -99,6 +108,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               hasIcons && iconPadding[size],
               className
             )}
+            step={step}
+            min={min}
+            max={max}
             {...props}
           />
           

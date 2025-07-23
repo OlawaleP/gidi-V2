@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { BaseComponent, Size, SelectOption } from '@/types/common';
 
 export interface SelectProps extends BaseComponent {
+  id?: string;
   options: SelectOption[];
   value?: string;
   defaultValue?: string;
@@ -10,7 +11,7 @@ export interface SelectProps extends BaseComponent {
   size?: Size;
   disabled?: boolean;
   required?: boolean;
-  error?: boolean;
+  error?: boolean | string;
   label?: string;
   helperText?: string;
   errorMessage?: string;
@@ -19,6 +20,7 @@ export interface SelectProps extends BaseComponent {
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({
+    id,
     className,
     options,
     value,
@@ -63,6 +65,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         
         <div className="relative">
           <select
+            id={id}
+            {...props}
             ref={ref}
             value={value}
             defaultValue={defaultValue}
