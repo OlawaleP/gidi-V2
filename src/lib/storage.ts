@@ -141,3 +141,11 @@ export class StorageManager {
 }
 
 export const storage = StorageManager.getInstance();
+
+export const getStoredProducts = (): Product[] => {
+  return storage.getProducts();
+};
+
+export const saveProducts = (products: Product[]): boolean => {
+  return storage.saveProducts(products);
+};
