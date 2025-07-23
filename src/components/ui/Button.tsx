@@ -8,7 +8,7 @@ export interface ButtonProps extends BaseComponent {
   type?: ButtonType;
   disabled?: boolean;
   loading?: boolean;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

@@ -8,6 +8,8 @@ export interface CardProps extends BaseComponent {
   hover?: boolean;
   clickable?: boolean;
   onClick?: () => void;
+    onMouseEnter?: (e: React.MouseEvent<HTMLDivElement>) => void; 
+  onMouseLeave?: (e: React.MouseEvent<HTMLDivElement>) => void; 
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -19,6 +21,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     hover = false,
     clickable = false,
     onClick,
+    onMouseEnter,
+    onMouseLeave, 
     ...props
   }, ref) => {
     const baseClasses = 'rounded-lg transition-all duration-200';
@@ -50,6 +54,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         onClick={onClick}
+        onMouseEnter={onMouseEnter} 
+        onMouseLeave={onMouseLeave} 
         tabIndex={clickable ? 0 : undefined}
         className={cn(
           baseClasses,
