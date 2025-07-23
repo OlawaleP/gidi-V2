@@ -7,6 +7,8 @@ export interface TextareaProps extends BaseComponent {
   placeholder?: string;
   value?: string;
   defaultValue?: string;
+  rows?: number;
+  cols?: number;
   size?: Size;
   disabled?: boolean;
   required?: boolean;
@@ -14,7 +16,6 @@ export interface TextareaProps extends BaseComponent {
   label?: string;
   helperText?: string;
   errorMessage?: string;
-  rows?: number;
   maxLength?: number;
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -29,6 +30,8 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     placeholder,
     value,
     defaultValue,
+    rows = 3,
+    cols,
     size = 'md',
     disabled = false,
     required = false,
@@ -36,7 +39,6 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     label,
     helperText,
     errorMessage,
-    rows = 4,
     maxLength,
     resize = 'vertical',
     onChange,
@@ -65,6 +67,9 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       both: 'resize'
     };
 
+    const characterCount = value ? value.length : 0;
+    const showCharacterCount = maxLength && maxLength > 0;
+
     return (
       <div className="w-full">
         {label && (
@@ -80,9 +85,10 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           placeholder={placeholder}
           value={value}
           defaultValue={defaultValue}
+          rows={rows}
+          cols={cols}
           disabled={disabled}
           required={required}
-          rows={rows}
           maxLength={maxLength}
           onChange={onChange}
           onFocus={onFocus}
@@ -98,19 +104,26 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         />
         
         <div className="flex justify-between items-center mt-1">
-          {(helperText || errorMessage) && (
-            <p className={cn(
-              'text-xs',
-              error ? 'text-red-600' : 'text-gray-500'
-            )}>
-              {error && errorMessage ? errorMessage : helperText}
-            </p>
-          )}
+          <div>
+            {(helperText || errorMessage) && (
+              <p className={cn(
+                'text-xs',
+                error ? 'text-red-600' : 'text-gray-500'
+              )}>
+                {error && errorMessage ? errorMessage : helperText}
+              </p>
+            )}
+          </div>
           
-          {maxLength && (
-            <span className="text-xs text-gray-400 ml-auto">
-              {value?.length || 0}/{maxLength}
-            </span>
+          {showCharacterCount && (
+            <div className="text-xs text-gray-500">
+              <span className={cn(
+                characterCount > maxLength ? 'text-red-600' : 'text-gray-500'
+              )}>
+                {characterCount}
+              </span>
+              <span className="text-gray-400">/{maxLength}</span>
+            </div>
           )}
         </div>
       </div>
