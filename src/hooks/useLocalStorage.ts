@@ -18,7 +18,6 @@ export function useLocalStorage<T>(
   const [error, setError] = useState<string | null>(null);
   const [storedValue, setStoredValue] = useState<T>(initialValue);
 
-  // Get value from localStorage
   const getValue = useCallback((): T => {
     try {
       if (typeof window === 'undefined') {
@@ -64,7 +63,6 @@ export function useLocalStorage<T>(
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(key);
         
-        // Dispatch custom event to sync across components
         window.dispatchEvent(
           new CustomEvent('localStorage', {
             detail: { key, newValue: undefined }
@@ -160,7 +158,7 @@ export function useLocalStorageMultiple<T extends Record<string, unknown>>(
     };
 
     loadValues();
-  }, []);
+  }, [keys, initialValues]); 
 
   const updateValue = useCallback(<K extends keyof T>(key: K, value: T[K]) => {
     try {

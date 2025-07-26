@@ -75,7 +75,7 @@ export function Footer() {
                   </svg>
                 </div>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  ShopHub
+                  Gidi-E
                 </span>
               </div>
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-6 max-w-xs">
@@ -146,7 +146,7 @@ export function Footer() {
           <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
             <div className="md:flex md:items-center md:justify-between">
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                © {new Date().getFullYear()} ShopHub. All rights reserved.
+                © {new Date().getFullYear()} Gidi-E. All rights reserved.
               </p>
               <div className="mt-4 md:mt-0">
                 <div className="flex space-x-6">

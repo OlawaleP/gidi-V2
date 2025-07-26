@@ -68,9 +68,9 @@ export const VALIDATION_RULES = {
 export const DEFAULT_PRODUCT_IMAGE = '/images/placeholder.jpg';
 
 export const SEO_DEFAULTS = {
-  TITLE: 'E-commerce Platform - Quality Products Online',
+  TITLE: 'gidi-e - Quality Products Online',
   DESCRIPTION: 'Discover a wide range of quality products across multiple categories. Electronics, clothing, home goods, and more.',
-  KEYWORDS: ['ecommerce', 'online shopping', 'products', 'electronics', 'clothing', 'home goods'],
-  SITE_NAME: 'E-commerce Platform',
+  KEYWORDS: ['ecommerce', 'online shopping', 'products', 'electronics', 'clothing', 'home goods'] as string[],
+  SITE_NAME: 'gidi-e',
   TWITTER_HANDLE: '@ecommerce'
 } as const;

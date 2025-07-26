@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Product, ProductFilters, ProductStats, ProductCategory } from '@/types/product';
-import { ApiResponse, ProductsResponse } from '@/types/api';
-import { STORAGE_KEYS, API_ENDPOINTS, PAGINATION } from '@/lib/constants';
+import { ApiResponse } from '@/types/api';
+import { API_ENDPOINTS, PAGINATION } from '@/lib/constants';
 import { getStoredProducts, saveProducts } from '@/lib/storage';
+import { mockProducts } from '@/data/mockProducts';
 
 interface UseProductsOptions {
   filters?: ProductFilters;
@@ -27,45 +28,72 @@ interface UseProductsReturn {
 export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn => {
   const { filters = {}, page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT } = options;
   
-  const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  // Load products from storage/API
-  const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Try to load from localStorage first
-      const storedProducts = getStoredProducts();
-      
-      if (storedProducts.length > 0) {
-        setAllProducts(storedProducts);
-      } else {
-        // Fallback to API or initialize with mock data
-        const response = await fetch(API_ENDPOINTS.PRODUCTS);
-        if (response.ok) {
-          const data: ApiResponse<Product[]> = await response.json();
-          setAllProducts(data.data);
-          saveProducts(data.data);
-        } else {
-          throw new Error('Failed to load products');
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load products');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    setIsClient(true);
   }, []);
 
-  // Filter and paginate products
+const loadProducts = useCallback(async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    if (isClient) {
+      try {
+        const storedProducts = getStoredProducts();
+        if (storedProducts && storedProducts.length > 0) {
+          setAllProducts(storedProducts);
+          setLoading(false);
+          return;
+        }
+      } catch (storageError) {
+        console.warn('Failed to load from localStorage:', storageError);
+      }
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS);
+      if (response.ok) {
+        const data: ApiResponse<Product[]> = await response.json();
+        setAllProducts(data.data);
+        if (isClient) {
+          try {
+            saveProducts(data.data);
+          } catch (saveError) {
+            console.warn('Failed to save to localStorage:', saveError);
+          }
+        }
+      } else {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+    } catch (apiError) {
+      console.warn('API request failed, using mock data:', apiError);
+      setAllProducts(mockProducts);
+      if (isClient) {
+        try {
+          saveProducts(mockProducts);
+        } catch (saveError) {
+          console.warn('Failed to save mock data to localStorage:', saveError);
+        }
+      }
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
+    setError(errorMessage);
+    console.error('Error in loadProducts:', err);
+    setAllProducts(mockProducts);
+  } finally {
+    setLoading(false);
+  }
+}, [isClient]);
+
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts];
 
-    // Apply filters
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       filtered = filtered.filter(product =>
@@ -92,7 +120,6 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       filtered = filtered.filter(product => product.inStock === filters.inStock);
     }
 
-    // Apply sorting
     if (filters.sortBy) {
       filtered.sort((a, b) => {
         let aValue: string | number | Date | undefined = a[filters.sortBy!];
@@ -119,14 +146,12 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
     return filtered;
   }, [allProducts, filters]);
 
-  // Paginate filtered products
-  const paginatedProducts = useMemo(() => {
+  const products = useMemo(() => {
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     return filteredProducts.slice(startIndex, endIndex);
   }, [filteredProducts, page, limit]);
 
-  // Calculate statistics
   const stats = useMemo((): ProductStats => {
     const total = allProducts.length;
     const inStock = allProducts.filter(p => p.inStock).length;
@@ -147,7 +172,6 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
 
   const totalPages = Math.ceil(filteredProducts.length / limit);
 
-  // CRUD operations
   const addProduct = useCallback(async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
     try {
       const newProduct: Product = {
@@ -159,13 +183,22 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
 
       const updatedProducts = [newProduct, ...allProducts];
       setAllProducts(updatedProducts);
-      saveProducts(updatedProducts);
+      
+      if (isClient) {
+        try {
+          saveProducts(updatedProducts);
+        } catch (saveError) {
+          console.warn('Failed to save to localStorage after adding product:', saveError);
+        }
+      }
       
       return newProduct;
-    } catch {
-      throw new Error('Failed to add product');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add product';
+      console.error('Error adding product:', err);
+      throw new Error(errorMessage);
     }
-  }, [allProducts]);
+  }, [allProducts, isClient]);
 
   const updateProduct = useCallback(async (id: string, updates: Partial<Product>): Promise<Product> => {
     try {
@@ -181,23 +214,41 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
       }
 
       setAllProducts(updatedProducts);
-      saveProducts(updatedProducts);
+      
+      if (isClient) {
+        try {
+          saveProducts(updatedProducts);
+        } catch (saveError) {
+          console.warn('Failed to save to localStorage after updating product:', saveError);
+        }
+      }
       
       return updatedProduct;
-    } catch {
-      throw new Error('Failed to update product');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update product';
+      console.error('Error updating product:', err);
+      throw new Error(errorMessage);
     }
-  }, [allProducts]);
+  }, [allProducts, isClient]);
 
   const deleteProduct = useCallback(async (id: string): Promise<void> => {
     try {
       const updatedProducts = allProducts.filter(product => product.id !== id);
       setAllProducts(updatedProducts);
-      saveProducts(updatedProducts);
-    } catch {
-      throw new Error('Failed to delete product');
+      
+      if (isClient) {
+        try {
+          saveProducts(updatedProducts);
+        } catch (saveError) {
+          console.warn('Failed to save to localStorage after deleting product:', saveError);
+        }
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete product';
+      console.error('Error deleting product:', err);
+      throw new Error(errorMessage);
     }
-  }, [allProducts]);
+  }, [allProducts, isClient]);
 
   const getProductById = useCallback((id: string): Product | undefined => {
     return allProducts.find(product => product.id === id);
@@ -208,12 +259,10 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
   }, [loadProducts]);
 
   useEffect(() => {
-    setProducts(paginatedProducts);
-  }, [paginatedProducts]);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    if (isClient) {
+      loadProducts();
+    }
+  }, [isClient, loadProducts]);
 
   return {
     products,

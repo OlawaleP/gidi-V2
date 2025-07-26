@@ -20,7 +20,7 @@ export function generateSEOMetadata({
   title = 'gidi-e',
   description = 'Discover amazing products at great prices. Shop now for the latest deals and best quality items.',
   keywords = ['ecommerce', 'shopping', 'products', 'deals'],
-  image = '/images/placeholdder.jpg',
+  image = 'public/images/logo.svg',
   url = '',
   type = 'website',
   price,
@@ -45,7 +45,7 @@ export function generateSEOMetadata({
       address: false,
       telephone: false,
     },
-    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || 'gidi-e.netlify.aapp'),
     alternates: {
       canonical: url,
     },
@@ -106,13 +106,13 @@ export function SEOHead({ children }: { children?: React.ReactNode }) {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'WebSite',
-            name: 'E-commerce Platform',
-            url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
+            name: 'Gidi-E',
+            url: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || 'gidi-e.netlify.aapp',
             potentialAction: {
               '@type': 'SearchAction',
               target: {
                 '@type': 'EntryPoint',
-                urlTemplate: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/products?search={search_term_string}`,
+                urlTemplate: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000' || 'gidi-e.netlify.aapp'}/products?search={search_term_string}`,
               },
               'query-input': 'required name=search_term_string',
             },

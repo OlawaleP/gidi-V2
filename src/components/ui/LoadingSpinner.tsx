@@ -55,7 +55,6 @@ const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(
 
 LoadingSpinner.displayName = 'LoadingSpinner';
 
-// Overlay variant for full-screen loading
 export const LoadingOverlay = React.forwardRef<HTMLDivElement, Omit<LoadingSpinnerProps, 'size'> & { message?: string }>(
   ({
     className,

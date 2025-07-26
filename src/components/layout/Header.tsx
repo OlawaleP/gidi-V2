@@ -50,7 +50,7 @@ export function Header() {
                 <ShoppingBagIcon />
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                ShopHub
+                Gidi-E
               </span>
             </Link>
           </div>

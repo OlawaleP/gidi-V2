@@ -97,6 +97,22 @@ export class ProductValidator {
       return { field: 'imageUrl', message: 'Product image URL is required' };
     }
 
+    if (imageUrl.startsWith('/uploads/')) {
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+      const hasImageExtension = imageExtensions.some(ext => 
+        imageUrl.toLowerCase().endsWith(ext)
+      );
+
+      if (!hasImageExtension) {
+        return {
+          field: 'imageUrl',
+          message: 'Local image must have a valid extension (jpg, jpeg, png, gif, webp, svg)'
+        };
+      }
+
+      return null;
+    }
+
     try {
       new URL(imageUrl);
     } catch {

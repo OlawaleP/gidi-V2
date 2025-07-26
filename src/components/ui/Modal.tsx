@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
@@ -127,7 +128,6 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
 
 Modal.displayName = 'Modal';
 
-// Modal sub-components
 export const ModalHeader = React.forwardRef<HTMLDivElement, BaseComponent>(
   ({ className, children, ...props }, ref) => (
     <div

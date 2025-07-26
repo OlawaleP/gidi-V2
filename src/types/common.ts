@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Product } from './product';
 
 export interface BaseComponent {
   className?: string;
@@ -38,4 +39,71 @@ export interface NotificationState {
   type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   visible: boolean;
+}
+
+export interface ProductImageGalleryProps {
+  product: Product;
+  className?: string;
+}
+
+export interface BreadcrumbProps {
+  product: Product;
+  className?: string;
+}
+
+export interface ProductInfoProps {
+  product: Product;
+  onEdit: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+  className?: string;
+}
+
+export interface DeleteConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  productName: string;
+  isDeleting: boolean;
+  className?: string;
+}
+
+export interface DeleteSuccessMessageProps {
+  onBack: () => void;
+  className?: string;
+}
+
+export interface SuccessMessageProps {
+  product: Product;
+  isEdit: boolean;
+  onAddNew: () => void;
+  onViewProduct: () => void;
+  onViewAll: () => void;
+  className?: string;
+}
+
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  className?: string;
+}
+
+export interface HeroSectionProps {
+  className?: string;
+}
+
+export interface CategoriesSectionProps {
+  className?: string;
+}
+
+export interface FeaturesSectionProps {
+  className?: string;
+}
+
+export interface ErrorMessageProps {
+  error: string;
+  onRetry?: () => void;
+  onGoBack?: () => void;
+  className?: string;
 }

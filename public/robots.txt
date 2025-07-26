@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+
+# Allow all crawlers to access main pages
+Allow: /products
+Allow: /products/*
+
+# Disallow admin-like functionality
+Disallow: /api/
+Disallow: /products/add
+
+# Sitemap location
+Sitemap: https://localhost:3000/sitemap.xml
+
+# Crawl delay (optional)
+Crawl-delay: 1
+
+# Additional bot-specific rules
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /

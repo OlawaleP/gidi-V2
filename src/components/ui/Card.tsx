@@ -10,6 +10,7 @@ export interface CardProps extends BaseComponent {
   onClick?: () => void;
     onMouseEnter?: (e: React.MouseEvent<HTMLDivElement>) => void; 
   onMouseLeave?: (e: React.MouseEvent<HTMLDivElement>) => void; 
+  priority?: boolean;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -23,6 +24,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     onClick,
     onMouseEnter,
     onMouseLeave, 
+    priority,
     ...props
   }, ref) => {
     const baseClasses = 'rounded-lg transition-all duration-200';
@@ -75,7 +77,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
 Card.displayName = 'Card';
 
-// Card sub-components
 export const CardHeader = React.forwardRef<HTMLDivElement, BaseComponent>(
   ({ className, children, ...props }, ref) => (
     <div

@@ -1,23 +1,28 @@
-import { Product, ProductFilters } from './product';
+import { ValidationError } from '@/lib/validation';
+import { Product, ProductFilters, ProductStats } from './product';
 
 export interface ApiResponse<T> {
   data: T;
   success: boolean;
   message?: string;
-  error?: string;
+  error?: string | ValidationError[];
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+export interface PaginationInfo {
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalProducts: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
 }
 
-export interface ProductsResponse extends PaginatedResponse<Product> {}
+export interface ProductsResponse {
+  products: Product[];
+  pagination: PaginationInfo;
+  filters: ProductFilters;
+  stats: ProductStats;
+}
 
 export interface SearchParams {
   q?: string;

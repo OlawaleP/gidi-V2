@@ -1,54 +1,36 @@
-"use client";
-
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useProducts } from '@/hooks/useProducts';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Container } from '@/components/common/Container';
-import ProductForm from '@/components/product/ProductForm';
-import Head from 'next/head';
-import { ProductFormData } from '@/types/product';
+import { AddProductContent } from '@/components/product/AddProductContent';
+import { SEO_DEFAULTS } from '@/lib/constants';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+export const metadata: Metadata = {
+  title: 'Add Product',
+  description: 'Add a new product to your catalog or edit an existing one.',
+  openGraph: {
+    title: `Add Product | ${SEO_DEFAULTS.SITE_NAME}`,
+    description: 'Add a new product to your catalog or edit an existing one.',
+    url: '/products/add',
+  },
+};
+
+function AddProductLoading() {
+  return (
+    <div className="flex justify-center items-center py-16">
+      <LoadingSpinner size="lg" aria-label="Loading product form" />
+    </div>
+  );
+}
 
 export default function AddProductPage() {
-  const router = useRouter();
-  const { addProduct, loading, error } = useProducts();
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const handleSubmit = async (formData: ProductFormData) => {
-    try {
-      setFormError(null);
-      const newProduct = await addProduct({
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        category: formData.category,
-        imageUrl: formData.imageUrl,
-        inStock: formData.inStock,
-        tags: formData.tags.split(',').map((tag) => tag.trim()),
-        sku: formData.sku,
-        brand: formData.brand,
-      });
-      router.push(`/products/${newProduct.id}`);
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Failed to add product');
-    }
-  };
-
   return (
-    <>
-      <Head>
-        <title>Add Product | gidi-e</title>
-        <meta name="description" content="Add a new product to the e-commerce platform." />
-        <meta property="og:title" content="Add Product | gidi-e" />
-        <meta property="og:description" content="Add a new product to the e-commerce platform." />
-        <meta property="og:image" content="/images/placeholder.jpg" />
-        <meta property="og:url" content="/products/add" />
-      </Head>
-      <Container>
-        <h1 className="text-3xl font-bold mb-6">Add New Product</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {formError && <p className="text-red-500 mb-4">{formError}</p>}
-        <ProductForm onSubmit={handleSubmit} isLoading={loading} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Container className="py-8">
+        <Suspense fallback={<AddProductLoading />}>
+          <AddProductContent />
+        </Suspense>
       </Container>
-    </>
+    </div>
   );
 }
