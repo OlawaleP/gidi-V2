@@ -25,6 +25,8 @@ interface UseProductsReturn {
   getProductById: (id: string) => Product | undefined;
 }
 
+type SortableProductKeys = keyof Pick<Product, 'name' | 'price' | 'createdAt' | 'category' | 'brand'>;
+
 export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn => {
   const { filters = {}, page = PAGINATION.DEFAULT_PAGE, limit = PAGINATION.DEFAULT_LIMIT } = options;
   
@@ -37,129 +39,175 @@ export const useProducts = (options: UseProductsOptions = {}): UseProductsReturn
     setIsClient(true);
   }, []);
 
-const loadProducts = useCallback(async () => {
-  try {
-    setLoading(true);
-    setError(null);
-
-    if (isClient) {
-      try {
-        const storedProducts = getStoredProducts();
-        if (storedProducts && storedProducts.length > 0) {
-          setAllProducts(storedProducts);
-          setLoading(false);
-          return;
-        }
-      } catch (storageError) {
-        console.warn('Failed to load from localStorage:', storageError);
-      }
-    }
-
+  const loadProducts = useCallback(async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.PRODUCTS);
-      if (response.ok) {
-        const data: ApiResponse<Product[]> = await response.json();
-        setAllProducts(data.data);
-        if (isClient) {
-          try {
-            saveProducts(data.data);
-          } catch (saveError) {
-            console.warn('Failed to save to localStorage:', saveError);
-          }
-        }
-      } else {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-    } catch (apiError) {
-      console.warn('API request failed, using mock data:', apiError);
-      setAllProducts(mockProducts);
+      setLoading(true);
+      setError(null);
+
+      let productsToUse: Product[] = [];
+
       if (isClient) {
         try {
-          saveProducts(mockProducts);
-        } catch (saveError) {
-          console.warn('Failed to save mock data to localStorage:', saveError);
+          const storedProducts = getStoredProducts();
+          if (Array.isArray(storedProducts) && storedProducts.length > 0) {
+            console.log('Loaded products from localStorage:', storedProducts.length);
+            setAllProducts(storedProducts);
+            setLoading(false);
+            return;
+          }
+        } catch (storageError) {
+          console.warn('Failed to load from localStorage:', storageError);
         }
       }
+
+      try {
+        const response = await fetch(API_ENDPOINTS.PRODUCTS);
+        if (response.ok) {
+          const data: ApiResponse<Product[]> = await response.json();
+          if (Array.isArray(data.data)) {
+            productsToUse = data.data;
+            console.log('Loaded products from API:', productsToUse.length);
+          }
+        } else {
+          throw new Error(`API request failed: ${response.status}`);
+        }
+      } catch (apiError) {
+        console.warn('API request failed, using mock data:', apiError);
+
+        if (Array.isArray(mockProducts)) {
+          productsToUse = mockProducts;
+          console.log('Using mock products:', productsToUse.length);
+        }
+      }
+
+      if (!Array.isArray(productsToUse)) {
+        console.warn('Products data is not an array, using empty array');
+        productsToUse = [];
+      }
+
+      setAllProducts(productsToUse);
+      
+      if (isClient && productsToUse.length > 0) {
+        try {
+          saveProducts(productsToUse);
+        } catch (saveError) {
+          console.warn('Failed to save to localStorage:', saveError);
+        }
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
+      setError(errorMessage);
+      console.error('Error in loadProducts:', err);
+      setAllProducts(Array.isArray(mockProducts) ? mockProducts : []);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Failed to load products';
-    setError(errorMessage);
-    console.error('Error in loadProducts:', err);
-    setAllProducts(mockProducts);
-  } finally {
-    setLoading(false);
-  }
-}, [isClient]);
+  }, [isClient]);
+
+  useEffect(() => {
+    if (isClient) {
+      loadProducts();
+    }
+  }, [isClient, loadProducts]);
 
   const filteredProducts = useMemo(() => {
+    if (!Array.isArray(allProducts)) {
+      console.warn('allProducts is not an array:', allProducts);
+      return [];
+    }
+
     let filtered = [...allProducts];
 
-    if (filters.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        product.brand?.toLowerCase().includes(query)
-      );
-    }
+    try {
+      if (filters.searchQuery) {
+        const query = filters.searchQuery.toLowerCase();
+        filtered = filtered.filter(product => {
+          if (!product || typeof product !== 'object') return false;
+          
+          const name = product.name?.toLowerCase() || '';
+          const description = product.description?.toLowerCase() || '';
+          const brand = product.brand?.toLowerCase() || '';
+          const tags = Array.isArray(product.tags) ? product.tags : [];
+          
+          return name.includes(query) ||
+                 description.includes(query) ||
+                 brand.includes(query) ||
+                 tags.some(tag => String(tag).toLowerCase().includes(query));
+        });
+      }
 
-    if (filters.category) {
-      filtered = filtered.filter(product => product.category === filters.category);
-    }
+      if (filters.category) {
+        filtered = filtered.filter(product => product?.category === filters.category);
+      }
 
-    if (filters.minPrice !== undefined) {
-      filtered = filtered.filter(product => product.price >= filters.minPrice!);
-    }
+      if (filters.minPrice !== undefined) {
+        filtered = filtered.filter(product => {
+          const price = Number(product?.price) || 0;
+          return price >= filters.minPrice!;
+        });
+      }
 
-    if (filters.maxPrice !== undefined) {
-      filtered = filtered.filter(product => product.price <= filters.maxPrice!);
-    }
+      if (filters.maxPrice !== undefined) {
+        filtered = filtered.filter(product => {
+          const price = Number(product?.price) || 0;
+          return price <= filters.maxPrice!;
+        });
+      }
 
-    if (filters.inStock !== undefined) {
-      filtered = filtered.filter(product => product.inStock === filters.inStock);
-    }
+      if (filters.inStock !== undefined) {
+        filtered = filtered.filter(product => product?.inStock === filters.inStock);
+      }
 
-    if (filters.sortBy) {
-      filtered.sort((a, b) => {
-        let aValue: string | number | Date | undefined = a[filters.sortBy!];
-        let bValue: string | number | Date | undefined = b[filters.sortBy!];
+      if (filters.sortBy) {
+        filtered.sort((a, b) => {
+          if (!a || !b) return 0;
+          
+          const sortKey = filters.sortBy as SortableProductKeys;
+          let aValue: string | number | Date = a[sortKey] as string | number | Date;
+          let bValue: string | number | Date = b[sortKey] as string | number | Date;
 
-        if (filters.sortBy === 'price') {
-          aValue = Number(aValue);
-          bValue = Number(bValue);
-        } else if (filters.sortBy === 'createdAt') {
-          aValue = new Date(aValue).getTime();
-          bValue = new Date(bValue).getTime();
-        } else {
-          aValue = String(aValue).toLowerCase();
-          bValue = String(bValue).toLowerCase();
-        }
+          if (filters.sortBy === 'price') {
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+          } else if (filters.sortBy === 'createdAt') {
+            aValue = new Date(aValue || 0).getTime();
+            bValue = new Date(bValue || 0).getTime();
+          } else {
+            aValue = String(aValue || '').toLowerCase();
+            bValue = String(bValue || '').toLowerCase();
+          }
 
-        if (filters.sortOrder === 'desc') {
-          return bValue > aValue ? 1 : bValue < aValue ? -1 : 0;
-        }
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      });
+          if (filters.sortOrder === 'desc') {
+            return bValue > aValue ? 1 : bValue < aValue ? -1 : 0;
+          }
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        });
+      }
+    } catch (filterError) {
+      console.error('Error filtering products:', filterError);
+      return allProducts; 
     }
 
     return filtered;
   }, [allProducts, filters]);
 
   const products = useMemo(() => {
+    if (!Array.isArray(filteredProducts)) return [];
+    
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     return filteredProducts.slice(startIndex, endIndex);
   }, [filteredProducts, page, limit]);
 
   const stats = useMemo((): ProductStats => {
-    const total = allProducts.length;
-    const inStock = allProducts.filter(p => p.inStock).length;
+    const productsArray = Array.isArray(allProducts) ? allProducts : [];
+    const total = productsArray.length;
+    const inStock = productsArray.filter(p => p?.inStock === true).length;
     const outOfStock = total - inStock;
     
     const categories: Record<ProductCategory, number> = {} as Record<ProductCategory, number>;
     Object.values(ProductCategory).forEach(category => {
-      categories[category] = allProducts.filter(p => p.category === category).length;
+      categories[category] = productsArray.filter(p => p?.category === category).length;
     });
 
     return {
@@ -170,7 +218,7 @@ const loadProducts = useCallback(async () => {
     };
   }, [allProducts]);
 
-  const totalPages = Math.ceil(filteredProducts.length / limit);
+  const totalPages = Math.ceil((Array.isArray(filteredProducts) ? filteredProducts.length : 0) / limit);
 
   const addProduct = useCallback(async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>): Promise<Product> => {
     try {
@@ -181,7 +229,8 @@ const loadProducts = useCallback(async () => {
         updatedAt: new Date().toISOString()
       };
 
-      const updatedProducts = [newProduct, ...allProducts];
+      const currentProducts = Array.isArray(allProducts) ? allProducts : [];
+      const updatedProducts = [newProduct, ...currentProducts];
       setAllProducts(updatedProducts);
       
       if (isClient) {
@@ -202,13 +251,14 @@ const loadProducts = useCallback(async () => {
 
   const updateProduct = useCallback(async (id: string, updates: Partial<Product>): Promise<Product> => {
     try {
-      const updatedProducts = allProducts.map(product =>
-        product.id === id
+      const currentProducts = Array.isArray(allProducts) ? allProducts : [];
+      const updatedProducts = currentProducts.map(product =>
+        product?.id === id
           ? { ...product, ...updates, updatedAt: new Date().toISOString() }
           : product
       );
 
-      const updatedProduct = updatedProducts.find(p => p.id === id);
+      const updatedProduct = updatedProducts.find(p => p?.id === id);
       if (!updatedProduct) {
         throw new Error('Product not found');
       }
@@ -233,7 +283,8 @@ const loadProducts = useCallback(async () => {
 
   const deleteProduct = useCallback(async (id: string): Promise<void> => {
     try {
-      const updatedProducts = allProducts.filter(product => product.id !== id);
+      const currentProducts = Array.isArray(allProducts) ? allProducts : [];
+      const updatedProducts = currentProducts.filter(product => product?.id !== id);
       setAllProducts(updatedProducts);
       
       if (isClient) {
@@ -251,21 +302,16 @@ const loadProducts = useCallback(async () => {
   }, [allProducts, isClient]);
 
   const getProductById = useCallback((id: string): Product | undefined => {
-    return allProducts.find(product => product.id === id);
+    const currentProducts = Array.isArray(allProducts) ? allProducts : [];
+    return currentProducts.find(product => product?.id === id);
   }, [allProducts]);
 
   const refetch = useCallback(async () => {
     await loadProducts();
   }, [loadProducts]);
 
-  useEffect(() => {
-    if (isClient) {
-      loadProducts();
-    }
-  }, [isClient, loadProducts]);
-
   return {
-    products,
+    products: Array.isArray(products) ? products : [],
     loading,
     error,
     stats,

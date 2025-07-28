@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Remove serverComponentsExternalPackages - not needed in Next.js 15
-    // Add valid experimental features if needed
     optimizePackageImports: ['lucide-react'],
   },
 
@@ -43,11 +41,10 @@ const nextConfig = {
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    formats: ['image/avif', 'image/webp'], // AVIF first for better compression
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    formats: ['image/avif', 'image/webp'], 
+    minimumCacheTTL: 60 * 60 * 24 * 30, 
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    // Remove experimentalLayout and quality - not valid options
   },
 
   env: {
@@ -94,7 +91,6 @@ const nextConfig = {
           },
         ],
       },
-      // Add cache headers for images
       {
         source: '/_next/image(.*)',
         headers: [
@@ -108,7 +104,6 @@ const nextConfig = {
   },
 
   webpack: (config, { dev, isServer }) => {
-    // Optimize bundle splitting for production
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
         chunks: 'all',
@@ -131,7 +126,6 @@ const nextConfig = {
       };
     }
 
-    // Handle various file types
     config.module.rules.push({
       test: /\.(png|jpe?g|gif|svg|eot|ttf|woff|woff2|webp|avif)$/i,
       type: 'asset/resource',
@@ -154,7 +148,6 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  // Remove swcMinify - it's enabled by default in Next.js 15
   trailingSlash: false,
 
   async rewrites() {
@@ -177,8 +170,8 @@ const nextConfig = {
     },
   },
 
-  // Add output configuration for better performance
-  output: 'standalone', // Remove this if you're not deploying as standalone
+  // // Add output configuration for better performance
+  // output: 'standalone', // Remove this if you're not deploying as standalone
 };
 
 export default nextConfig;

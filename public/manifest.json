@@ -1,0 +1,24 @@
+{
+  "name": "Gidi-E",
+  "short_name": "gidi-e",
+  "description": "A modern e-commerce product listing platform built with Next.js",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "categories": ["shopping", "business"],
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/images/logo.svg",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/images/logo.svg",
+      "sizes": "180x180",
+      "type": "image/svg"
+    }
+  ]
+}
